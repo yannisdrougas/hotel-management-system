@@ -37,6 +37,8 @@ import BadgeIcon from "@mui/icons-material/Badge";
 import EventAvailableIcon from "@mui/icons-material/EventAvailable";
 import PaymentIcon from "@mui/icons-material/Payment";
 
+import { PieChart } from "@mui/x-charts/PieChart";
+
 
 function Dashboard() {
 
@@ -577,7 +579,7 @@ catch (error) {
 
             </Grid>
 
-            {/* =================================================
+{/* =============================================
     OPERATIONAL STATISTICS
 ================================================= */}
 
@@ -968,6 +970,188 @@ catch (error) {
                 </Typography>
 
             </CardContent>
+
+        </Card>
+
+    </Grid>
+
+</Grid>
+
+{/* =================================================
+    DASHBOARD CHARTS
+================================================= */}
+
+<Typography
+    variant="h5"
+    fontWeight="bold"
+    sx={{
+        mt: 5,
+        mb: 2
+    }}
+>
+    Dashboard Charts
+</Typography>
+
+
+<Grid
+    container
+    spacing={3}
+>
+
+    {/* =================================================
+        RESERVATIONS BY STATUS
+    ================================================= */}
+
+    <Grid
+        item
+        xs={12}
+        md={6}
+    >
+
+        <Card
+            elevation={4}
+            sx={{
+                borderRadius: 3,
+                p: 2,
+                height: "100%"
+            }}
+        >
+
+            <Typography
+                variant="h6"
+                fontWeight="bold"
+                sx={{
+                    mb: 2
+                }}
+            >
+                Reservations by Status
+            </Typography>
+
+            <Box
+    sx={{
+        width: "100%",
+        overflow: "hidden"
+    }}
+>
+
+            <PieChart
+                series={[
+                    {
+                        data: [
+                            {
+                                id: 0,
+                                value: pendingReservationCount,
+                                label: "Pending"
+                            },
+                            {
+                                id: 1,
+                                value: confirmedReservationCount,
+                                label: "Confirmed"
+                            },
+                            {
+                                id: 2,
+                                value: completedReservationCount,
+                                label: "Completed"
+                            },
+                            {
+                                id: 3,
+                                value: cancelledReservationCount,
+                                label: "Cancelled"
+                            }
+                        ],
+
+                        innerRadius: 40,
+                        outerRadius: 100,
+                        paddingAngle: 3,
+                        cornerRadius: 4
+                    }
+                ]}
+
+                width={500}
+                height={300}
+            />
+
+            </Box>
+
+        </Card>
+
+    </Grid>
+
+
+    {/* =================================================
+        ROOMS BY STATUS
+    ================================================= */}
+
+    <Grid
+        item
+        xs={12}
+        md={6}
+    >
+
+        <Card
+            elevation={4}
+            sx={{
+                borderRadius: 3,
+                p: 2,
+                height: "100%"
+            }}
+        >
+
+            <Typography
+                variant="h6"
+                fontWeight="bold"
+                sx={{
+                    mb: 2
+                }}
+            >
+                Rooms by Status
+            </Typography>
+
+            <Box
+             sx={{
+                width: "100%",
+                 overflow: "hidden"
+             }}
+            >
+
+            <PieChart
+                series={[
+                    {
+                        data: [
+                            {
+                                id: 0,
+                                value: availableRoomCount,
+                                label: "Available"
+                            },
+                            {
+                                id: 1,
+                                value: occupiedRoomCount,
+                                label: "Occupied"
+                            },
+                            {
+                                id: 2,
+                                value: reservedRoomCount,
+                                label: "Reserved"
+                            },
+                            {
+                                id: 3,
+                                value: maintenanceRoomCount,
+                                label: "Maintenance"
+                            }
+                        ],
+
+                        innerRadius: 40,
+                        outerRadius: 100,
+                        paddingAngle: 3,
+                        cornerRadius: 4
+                    }
+                ]}
+
+                width={500}
+                height={300}
+            />
+
+            </Box>
 
         </Card>
 
