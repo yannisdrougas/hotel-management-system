@@ -510,6 +510,128 @@ Possible future improvements include:
 
 ---
 
+## Running with Docker
+
+The application can also be run using Docker and Docker Compose.
+
+The Docker setup includes three services:
+
+- MySQL database
+- Spring Boot backend
+- React frontend served through Nginx
+
+### Docker Requirements
+
+Make sure the following software is installed:
+
+- Docker Desktop
+- Docker Compose
+
+### 1. Create the Docker Environment File
+
+The repository includes:
+
+```text
+.env.example
+```
+
+Create a copy of this file and rename it to:
+
+```text
+.env
+```
+
+Example:
+
+```env
+MYSQL_DATABASE=hotelmanagementdb
+MYSQL_ROOT_PASSWORD=YOUR_DOCKER_MYSQL_PASSWORD
+SPRING_DATASOURCE_USERNAME=root
+```
+
+The real `.env` file is excluded from Git and should never be committed.
+
+### 2. Start the Docker Containers
+
+From the project root directory run:
+
+```bash
+docker compose up --build -d
+```
+
+Docker Compose will start:
+
+```text
+Frontend   → http://localhost:3000
+Backend    → http://localhost:8080
+MySQL      → localhost:3307
+```
+
+The Spring Boot backend connects internally to the Docker MySQL service using:
+
+```text
+db:3306
+```
+
+### 3. Swagger UI
+
+When the Docker stack is running, Swagger UI is available at:
+
+```text
+http://localhost:8080/swagger-ui/index.html
+```
+
+### 4. Frontend
+
+Open:
+
+```text
+http://localhost:3000
+```
+
+### 5. Check Container Status
+
+```bash
+docker compose ps
+```
+
+All three services should be running:
+
+```text
+hotel-management-db
+hotel-management-backend
+hotel-management-frontend
+```
+
+### 6. Stop the Docker Containers
+
+```bash
+docker compose down
+```
+
+To also remove the Docker MySQL volume:
+
+```bash
+docker compose down -v
+```
+
+> Warning: `docker compose down -v` removes the Docker database volume and its stored data.
+
+### Docker Architecture
+
+```text
+Browser
+   ↓
+Frontend / React + Nginx
+localhost:3000
+   ↓
+Spring Boot Backend
+localhost:8080
+   ↓
+MySQL Docker Container
+db:3306
+```
+
 # Author
 
 **Yannis Drougas**
