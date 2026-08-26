@@ -17,6 +17,7 @@ function Layout({ children }) {
                 component="main"
                 sx={{
                     flexGrow: 1,
+                    minWidth: 0,
                     p: 3
                 }}
             >

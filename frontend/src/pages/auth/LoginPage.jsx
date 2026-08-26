@@ -53,7 +53,7 @@ function LoginPage() {
 
     }
 
-    navigate("/");
+    navigate("/dashboard");
 
 };
 

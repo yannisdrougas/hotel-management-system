@@ -27,6 +27,11 @@ function App() {
             ========================================= */}
 
             <Route
+                path="/"
+                element={<LoginPage />}
+            />
+
+            <Route
                 path="/login"
                 element={<LoginPage />}
             />
@@ -50,7 +55,7 @@ function App() {
                         <Routes>
 
                             <Route
-                                path="/"
+                                path="/dashboard"
                                 element={<Dashboard />}
                             />
 

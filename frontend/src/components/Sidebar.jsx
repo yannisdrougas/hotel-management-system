@@ -28,10 +28,10 @@ function Sidebar() {
     const menuItems = [
 
         {
-            text: "Dashboard",
-            icon: <DashboardIcon />,
-            path: "/"
-        },
+		text: "Dashboard",
+		icon: <DashboardIcon />,
+		path: "/dashboard"
+		},
 
         {
             text: "Customers",
