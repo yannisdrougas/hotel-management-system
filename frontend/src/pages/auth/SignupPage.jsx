@@ -1,4 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
+import api from "../../api/api";
 
 import {
     Alert,
@@ -23,7 +24,7 @@ function SignupPage() {
     const navigate = useNavigate();
     const [error, setError] = useState("");
 
-   const handleSubmit = (event) => {
+   const handleSubmit = async (event) => {
 
     event.preventDefault();
 
@@ -41,7 +42,9 @@ function SignupPage() {
     }
 
     if (password.length < 6) {
-        setError("Password must contain at least 6 characters.");
+        setError(
+            "Password must contain at least 6 characters."
+        );
         return;
     }
 
@@ -50,10 +53,28 @@ function SignupPage() {
         return;
     }
 
-    navigate("/login");
+    try {
+
+        await api.post("/auth/register", {
+            firstName: firstName.trim(),
+            lastName: lastName.trim(),
+            email: email.trim(),
+            password: password
+        });
+
+        navigate("/login");
+
+    } catch (error) {
+
+        console.error("Registration failed:", error);
+
+        setError(
+            "Registration failed. The email may already be registered."
+        );
+
+    }
 
 };
-
     return (
 
         <Box

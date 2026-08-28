@@ -11,6 +11,7 @@ import {
 } from "@mui/material";
 
 import { useState } from "react";
+import api from "../../api/api";
 
 function LoginPage() {
 
@@ -20,7 +21,7 @@ function LoginPage() {
 
     const navigate = useNavigate();
 
-    const handleSubmit = (event) => {
+    const handleSubmit = async (event) => {
 
     event.preventDefault();
 
@@ -53,10 +54,34 @@ function LoginPage() {
 
     }
 
-    navigate("/dashboard");
+    try {
+
+        await api.post("/auth/login", {
+            email: email.trim(),
+            password: password
+        });
+
+        navigate("/dashboard");
+
+    } catch (error) {
+
+        console.error("Login failed:", error);
+
+        if (error.response?.status === 401) {
+
+            setError("Invalid email or password.");
+
+        } else {
+
+            setError(
+                "Login failed. Please try again."
+            );
+
+        }
+
+    }
 
 };
-
     return (
 
         <Box
