@@ -23,65 +23,72 @@ function LoginPage() {
 
     const handleSubmit = async (event) => {
 
-    event.preventDefault();
+        event.preventDefault();
 
-    setError("");
+        setError("");
 
-    if (!email.trim() || !password) {
+        if (!email.trim() || !password) {
 
-        setError("Please fill in all fields.");
-        return;
-
-    }
-
-    const emailRegex =
-        /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-    if (!emailRegex.test(email)) {
-
-        setError("Please enter a valid email address.");
-        return;
-
-    }
-
-    if (password.length < 6) {
-
-        setError(
-            "Password must contain at least 6 characters."
-        );
-
-        return;
-
-    }
-
-    try {
-
-        await api.post("/auth/login", {
-            email: email.trim(),
-            password: password
-        });
-
-        navigate("/dashboard");
-
-    } catch (error) {
-
-        console.error("Login failed:", error);
-
-        if (error.response?.status === 401) {
-
-            setError("Invalid email or password.");
-
-        } else {
-
-            setError(
-                "Login failed. Please try again."
-            );
+            setError("Please fill in all fields.");
+            return;
 
         }
 
-    }
+        const emailRegex =
+            /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-};
+        if (!emailRegex.test(email)) {
+
+            setError("Please enter a valid email address.");
+            return;
+
+        }
+
+        if (password.length < 6) {
+
+            setError(
+                "Password must contain at least 6 characters."
+            );
+
+            return;
+
+        }
+
+        try {
+
+            const response = await api.post("/auth/login", {
+                email: email.trim(),
+                password: password
+            });
+
+              // Save logged-in user information for the current browser session
+                sessionStorage.setItem(
+                "user",
+                JSON.stringify(response.data)
+            );
+
+            navigate("/dashboard");
+
+        } catch (error) {
+
+            console.error("Login failed:", error);
+
+            if (error.response?.status === 401) {
+
+                setError("Invalid email or password.");
+
+            } else {
+
+                setError(
+                    "Login failed. Please try again."
+                );
+
+            }
+
+        }
+
+    };
+
     return (
 
         <Box
@@ -121,7 +128,6 @@ function LoginPage() {
                         Hotel Management System
                     </Typography>
 
-
                     <Typography
                         variant="h6"
                         textAlign="center"
@@ -133,7 +139,6 @@ function LoginPage() {
                         Welcome Back
                     </Typography>
 
-
                     <Box
                         component="form"
                         onSubmit={handleSubmit}
@@ -141,16 +146,16 @@ function LoginPage() {
 
                         {error && (
 
-                        <Alert
-                         severity="error"
-                          sx={{
-                         mb: 2
-                             }}
-                        >
-                         {error}
-                         </Alert>
+                            <Alert
+                                severity="error"
+                                sx={{
+                                    mb: 2
+                                }}
+                            >
+                                {error}
+                            </Alert>
 
-                            )}
+                        )}
 
                         <TextField
                             required
@@ -166,7 +171,6 @@ function LoginPage() {
                             }}
                         />
 
-
                         <TextField
                             required
                             fullWidth
@@ -181,7 +185,6 @@ function LoginPage() {
                             }}
                         />
 
-
                         <Button
                             type="submit"
                             fullWidth
@@ -194,28 +197,28 @@ function LoginPage() {
                             Login
                         </Button>
 
-
                         <Typography
-    textAlign="center"
-    color="text.secondary"
-    sx={{
-        mt: 3
-    }}
->
-    Don't have an account?{" "}
+                            textAlign="center"
+                            color="text.secondary"
+                            sx={{
+                                mt: 3
+                            }}
+                        >
+                            Don't have an account?{" "}
 
-    <Link
-        to="/signup"
-        style={{
-            textDecoration: "none",
-            color: "#1976d2",
-            fontWeight: "bold"
-        }}
-    >
-        Sign Up
-    </Link>
+                            <Link
+                                to="/signup"
+                                style={{
+                                    textDecoration: "none",
+                                    color: "#1976d2",
+                                    fontWeight: "bold"
+                                }}
+                            >
+                                Sign Up
+                            </Link>
 
-</Typography>
+                        </Typography>
+
                     </Box>
 
                 </CardContent>
