@@ -27,10 +27,13 @@ Source: "..\docker-compose.yml"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\.env.example"; DestDir: "{app}"; DestName: ".env"; Flags: ignoreversion
 Source: "StartHotelManagement.bat"; DestDir: "{app}\installer"; Flags: ignoreversion
 Source: "..\README.md"; DestDir: "{app}"; Flags: ignoreversion
+Source: "StopHotelManagement.bat"; DestDir: "{app}\installer"; Flags: ignoreversion
 
 [Icons]
 Name: "{autoprograms}\Hotel Management System"; Filename: "{app}\installer\StartHotelManagement.bat"; WorkingDir: "{app}"
 Name: "{autodesktop}\Hotel Management System"; Filename: "{app}\installer\StartHotelManagement.bat"; WorkingDir: "{app}"; Tasks: desktopicon
+Name: "{autoprograms}\Stop Hotel Management System"; Filename: "{app}\installer\StopHotelManagement.bat"; WorkingDir: "{app}"
+Name: "{autodesktop}\Stop Hotel Management System"; Filename: "{app}\installer\StopHotelManagement.bat"; WorkingDir: "{app}"; Tasks: desktopicon
 
 [Tasks]
 Name: "desktopicon"; Description: "Create a desktop shortcut"; GroupDescription: "Additional shortcuts:"; Flags: unchecked
