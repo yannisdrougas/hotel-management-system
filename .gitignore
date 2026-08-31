@@ -47,3 +47,6 @@ Thumbs.db
 
 # Local database backups
 database/*_backup_*.sql
+
+# Inno Setup build output
+installer/output/
