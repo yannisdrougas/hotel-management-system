@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import {
     Box,
@@ -18,6 +18,10 @@ import {
 import {
     getRooms
 } from "../../services/roomService";
+
+import {
+    getHotels
+} from "../../services/hotelService";
 
 
 // =====================================================
@@ -40,10 +44,15 @@ function ReservationForm({
     const [formData, setFormData] = useState({
 
         customerId: "",
+
+        hotelId: "",
+
         roomId: "",
+
         employeeId: "",
 
         checkIn: "",
+
         checkOut: "",
 
         guests: "",
@@ -59,6 +68,8 @@ function ReservationForm({
 
     const [customers, setCustomers] = useState([]);
 
+    const [hotels, setHotels] = useState([]);
+
     const [rooms, setRooms] = useState([]);
 
     const [employees, setEmployees] = useState([]);
@@ -73,7 +84,11 @@ function ReservationForm({
         console.log("RESERVATION FORM MOUNTED");
 
         loadCustomers();
+
+        loadHotels();
+
         loadRooms();
+
         loadEmployees();
 
     }, []);
@@ -87,6 +102,67 @@ function ReservationForm({
 
         if (initialData) {
 
+            const initialRoomId =
+                initialData.roomId !== null &&
+                initialData.roomId !== undefined
+                    ? Number(initialData.roomId)
+                    : "";
+
+
+            let initialHotelId = "";
+
+
+            // =================================================
+            // FIRST TRY:
+            // Hotel information directly from reservation data
+            // =================================================
+
+            if (
+                initialData.hotelId !== null &&
+                initialData.hotelId !== undefined
+            ) {
+
+                initialHotelId =
+                    Number(initialData.hotelId);
+
+            }
+
+
+            // =================================================
+            // SECOND TRY:
+            // Find hotel through selected room
+            // =================================================
+
+            if (
+                !initialHotelId &&
+                initialRoomId &&
+                rooms.length > 0
+            ) {
+
+                const selectedRoom = rooms.find(
+
+                    room =>
+                        Number(room.roomId) ===
+                        Number(initialRoomId)
+
+                );
+
+
+                if (
+                    selectedRoom?.hotel?.hotelId !== null &&
+                    selectedRoom?.hotel?.hotelId !== undefined
+                ) {
+
+                    initialHotelId =
+                        Number(
+                            selectedRoom.hotel.hotelId
+                        );
+
+                }
+
+            }
+
+
             setFormData({
 
                 customerId:
@@ -95,11 +171,11 @@ function ReservationForm({
                         ? Number(initialData.customerId)
                         : "",
 
+                hotelId:
+                    initialHotelId,
+
                 roomId:
-                    initialData.roomId !== null &&
-                    initialData.roomId !== undefined
-                        ? Number(initialData.roomId)
-                        : "",
+                    initialRoomId,
 
                 employeeId:
                     initialData.employeeId !== null &&
@@ -130,10 +206,15 @@ function ReservationForm({
             setFormData({
 
                 customerId: "",
+
+                hotelId: "",
+
                 roomId: "",
+
                 employeeId: "",
 
                 checkIn: "",
+
                 checkOut: "",
 
                 guests: "",
@@ -144,7 +225,7 @@ function ReservationForm({
 
         }
 
-    }, [initialData]);
+    }, [initialData, rooms]);
 
 
     // =====================================================
@@ -155,7 +236,8 @@ function ReservationForm({
 
         try {
 
-            const response = await getCustomers();
+            const response =
+                await getCustomers();
 
             console.log(
                 "CUSTOMERS:",
@@ -184,6 +266,43 @@ function ReservationForm({
 
 
     // =====================================================
+    // LOAD HOTELS
+    // =====================================================
+
+    const loadHotels = async () => {
+
+        try {
+
+            const response =
+                await getHotels();
+
+            console.log(
+                "HOTELS:",
+                response.data
+            );
+
+            setHotels(
+                Array.isArray(response.data)
+                    ? response.data
+                    : []
+            );
+
+        }
+        catch (error) {
+
+            console.error(
+                "Failed to load hotels:",
+                error
+            );
+
+            setHotels([]);
+
+        }
+
+    };
+
+
+    // =====================================================
     // LOAD ROOMS
     // =====================================================
 
@@ -191,7 +310,8 @@ function ReservationForm({
 
         try {
 
-            const response = await getRooms();
+            const response =
+                await getRooms();
 
             console.log(
                 "ROOMS:",
@@ -225,11 +345,14 @@ function ReservationForm({
 
     const loadEmployees = async () => {
 
-        console.log("LOAD EMPLOYEES STARTED");
+        console.log(
+            "LOAD EMPLOYEES STARTED"
+        );
 
         try {
 
-            const response = await getEmployees();
+            const response =
+                await getEmployees();
 
             console.log(
                 "EMPLOYEES:",
@@ -241,9 +364,15 @@ function ReservationForm({
                 response.data?.length
             );
 
-            if (Array.isArray(response.data)) {
+            if (
+                Array.isArray(
+                    response.data
+                )
+            ) {
 
-                setEmployees(response.data);
+                setEmployees(
+                    response.data
+                );
 
             }
             else {
@@ -273,6 +402,37 @@ function ReservationForm({
 
 
     // =====================================================
+    // FILTER ROOMS BY HOTEL
+    // =====================================================
+
+    const filteredRooms =
+        useMemo(() => {
+
+            if (!formData.hotelId) {
+
+                return [];
+
+            }
+
+            return rooms.filter(
+
+                room =>
+                    Number(
+                        room?.hotel?.hotelId
+                    ) ===
+                    Number(
+                        formData.hotelId
+                    )
+
+            );
+
+        }, [
+            rooms,
+            formData.hotelId
+        ]);
+
+
+    // =====================================================
     // HANDLE CHANGE
     // =====================================================
 
@@ -282,6 +442,33 @@ function ReservationForm({
             name,
             value
         } = event.target;
+
+
+        // =================================================
+        // HOTEL CHANGE
+        //
+        // When hotel changes,
+        // clear selected room.
+        // =================================================
+
+        if (name === "hotelId") {
+
+            setFormData(
+                previous => ({
+
+                    ...previous,
+
+                    hotelId: value,
+
+                    roomId: ""
+
+                })
+            );
+
+            return;
+
+        }
+
 
         setFormData(
             previous => ({
@@ -304,16 +491,23 @@ function ReservationForm({
 
         event.preventDefault();
 
+
         const reservation = {
 
             customerId:
-                Number(formData.customerId),
+                Number(
+                    formData.customerId
+                ),
 
             roomId:
-                Number(formData.roomId),
+                Number(
+                    formData.roomId
+                ),
 
             employeeId:
-                Number(formData.employeeId),
+                Number(
+                    formData.employeeId
+                ),
 
             checkIn:
                 formData.checkIn,
@@ -322,17 +516,21 @@ function ReservationForm({
                 formData.checkOut,
 
             guests:
-                Number(formData.guests),
+                Number(
+                    formData.guests
+                ),
 
             status:
                 formData.status
 
         };
 
+
         console.log(
             "RESERVATION TO SAVE:",
             reservation
         );
+
 
         onSave(reservation);
 
@@ -346,16 +544,27 @@ function ReservationForm({
     return (
 
         <Box
+
             component="form"
+
             id="reservation-form"
+
             onSubmit={handleSubmit}
+
             sx={{
+
                 display: "flex",
+
                 flexDirection: "column",
+
                 gap: 2,
+
                 mt: 1
+
             }}
+
         >
+
 
             {/* =================================================
                 CUSTOMER
@@ -371,31 +580,122 @@ function ReservationForm({
 
                 name="customerId"
 
-                value={formData.customerId}
+                value={
+                    formData.customerId
+                }
 
-                onChange={handleChange}
+                onChange={
+                    handleChange
+                }
 
                 required
 
             >
 
                 <MenuItem value="">
+
                     Select Customer
+
                 </MenuItem>
 
-                {customers.map((customer) => (
 
-                    <MenuItem
-                        key={customer.customerId}
-                        value={Number(customer.customerId)}
-                    >
+                {customers.map(
+                    customer => (
 
-                        {customer.firstName}{" "}
-                        {customer.lastName}
+                        <MenuItem
 
-                    </MenuItem>
+                            key={
+                                customer.customerId
+                            }
 
-                ))}
+                            value={
+                                Number(
+                                    customer.customerId
+                                )
+                            }
+
+                        >
+
+                            {
+                                customer.firstName
+                            }{" "}
+
+                            {
+                                customer.lastName
+                            }
+
+                        </MenuItem>
+
+                    )
+                )}
+
+            </TextField>
+
+
+            {/* =================================================
+                HOTEL
+            ================================================= */}
+
+            <TextField
+
+                select
+
+                fullWidth
+
+                label="Hotel"
+
+                name="hotelId"
+
+                value={
+                    formData.hotelId
+                }
+
+                onChange={
+                    handleChange
+                }
+
+                required
+
+            >
+
+                <MenuItem value="">
+
+                    Select Hotel
+
+                </MenuItem>
+
+
+                {hotels.map(
+                    hotel => (
+
+                        <MenuItem
+
+                            key={
+                                hotel.hotelId
+                            }
+
+                            value={
+                                Number(
+                                    hotel.hotelId
+                                )
+                            }
+
+                        >
+
+                            {
+                                hotel.name
+                            }
+
+                            {
+                                hotel.stars
+                                    ? ` (${hotel.stars}★)`
+                                    : ""
+                            }
+
+                        </MenuItem>
+
+                    )
+                )}
 
             </TextField>
 
@@ -414,31 +714,62 @@ function ReservationForm({
 
                 name="roomId"
 
-                value={formData.roomId}
+                value={
+                    formData.roomId
+                }
 
-                onChange={handleChange}
+                onChange={
+                    handleChange
+                }
 
                 required
+
+                disabled={
+                    !formData.hotelId
+                }
 
             >
 
                 <MenuItem value="">
-                    Select Room
+
+                    {
+                        formData.hotelId
+                            ? "Select Room"
+                            : "Select Hotel First"
+                    }
+
                 </MenuItem>
 
-                {rooms.map((room) => (
 
-                    <MenuItem
-                        key={room.roomId}
-                        value={Number(room.roomId)}
-                    >
+                {filteredRooms.map(
+                    room => (
 
-                        Room {room.roomNumber}{" "}
-                        ({room.roomType})
+                        <MenuItem
 
-                    </MenuItem>
+                            key={
+                                room.roomId
+                            }
 
-                ))}
+                            value={
+                                Number(
+                                    room.roomId
+                                )
+                            }
+
+                        >
+
+                            Room {
+                                room.roomNumber
+                            }{" "}
+
+                            ({
+                                room.roomType
+                            })
+
+                        </MenuItem>
+
+                    )
+                )}
 
             </TextField>
 
@@ -457,9 +788,13 @@ function ReservationForm({
 
                 name="employeeId"
 
-                value={formData.employeeId}
+                value={
+                    formData.employeeId
+                }
 
-                onChange={handleChange}
+                onChange={
+                    handleChange
+                }
 
                 required
 
@@ -490,22 +825,41 @@ function ReservationForm({
             >
 
                 <MenuItem value="">
+
                     Select Employee
+
                 </MenuItem>
 
-                {employees.map((employee) => (
 
-                    <MenuItem
-                        key={employee.employeeId}
-                        value={Number(employee.employeeId)}
-                    >
+                {employees.map(
+                    employee => (
 
-                        {employee.firstName}{" "}
-                        {employee.lastName}
+                        <MenuItem
 
-                    </MenuItem>
+                            key={
+                                employee.employeeId
+                            }
 
-                ))}
+                            value={
+                                Number(
+                                    employee.employeeId
+                                )
+                            }
+
+                        >
+
+                            {
+                                employee.firstName
+                            }{" "}
+
+                            {
+                                employee.lastName
+                            }
+
+                        </MenuItem>
+
+                    )
+                )}
 
             </TextField>
 
@@ -524,9 +878,13 @@ function ReservationForm({
 
                 name="checkIn"
 
-                value={formData.checkIn}
+                value={
+                    formData.checkIn
+                }
 
-                onChange={handleChange}
+                onChange={
+                    handleChange
+                }
 
                 required
 
@@ -557,9 +915,13 @@ function ReservationForm({
 
                 name="checkOut"
 
-                value={formData.checkOut}
+                value={
+                    formData.checkOut
+                }
 
-                onChange={handleChange}
+                onChange={
+                    handleChange
+                }
 
                 required
 
@@ -590,9 +952,13 @@ function ReservationForm({
 
                 name="guests"
 
-                value={formData.guests}
+                value={
+                    formData.guests
+                }
 
-                onChange={handleChange}
+                onChange={
+                    handleChange
+                }
 
                 inputProps={{
 
@@ -619,28 +985,40 @@ function ReservationForm({
 
                 name="status"
 
-                value={formData.status}
+                value={
+                    formData.status
+                }
 
-                onChange={handleChange}
+                onChange={
+                    handleChange
+                }
 
                 required
 
             >
 
                 <MenuItem value="PENDING">
+
                     PENDING
+
                 </MenuItem>
 
                 <MenuItem value="CONFIRMED">
+
                     CONFIRMED
+
                 </MenuItem>
 
                 <MenuItem value="COMPLETED">
+
                     COMPLETED
+
                 </MenuItem>
 
                 <MenuItem value="CANCELLED">
+
                     CANCELLED
+
                 </MenuItem>
 
             </TextField>
@@ -657,7 +1035,9 @@ function ReservationForm({
                 variant="contained"
 
                 sx={{
+
                     display: "none"
+
                 }}
 
             >
