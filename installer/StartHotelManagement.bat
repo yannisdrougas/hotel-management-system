@@ -8,7 +8,21 @@ echo     Hotel Management System Launcher
 echo ==========================================
 echo.
 
+REM =====================================================
+REM GO TO APPLICATION ROOT
+REM installer\StartHotelManagement.bat -> project root
+REM =====================================================
+
 cd /d "%~dp0.."
+
+echo Application folder:
+echo %CD%
+echo.
+
+
+REM =====================================================
+REM CHECK DOCKER
+REM =====================================================
 
 echo Checking Docker installation...
 
@@ -17,6 +31,11 @@ if errorlevel 1 goto DockerNotInstalled
 
 echo Docker found.
 echo.
+
+
+REM =====================================================
+REM CHECK DOCKER ENGINE
+REM =====================================================
 
 echo Checking Docker Engine...
 
@@ -36,7 +55,9 @@ echo.
 
 set attempts=0
 
+
 :WaitForDocker
+
 timeout /t 5 /nobreak >nul
 
 docker info >nul 2>&1
@@ -51,23 +72,78 @@ if !attempts! GEQ 24 goto DockerTimeout
 goto WaitForDocker
 
 
+REM =====================================================
+REM DOCKER READY
+REM =====================================================
+
 :DockerReady
 
 echo.
 echo Docker Engine is ready.
 echo.
 
+
+REM =====================================================
+REM START / REBUILD APPLICATION
+REM =====================================================
+
 echo Starting Hotel Management System...
-docker compose up -d
+echo.
+
+docker compose up -d --build
 
 if errorlevel 1 goto ApplicationError
 
-echo.
-echo Waiting for the application to start...
-timeout /t 15 /nobreak >nul
+
+REM =====================================================
+REM VERIFY CONTAINERS
+REM =====================================================
 
 echo.
+echo Docker services:
+docker compose ps
+echo.
+
+
+REM =====================================================
+REM WAIT FOR FRONTEND
+REM =====================================================
+
+echo Waiting for frontend to become available...
+echo.
+
+set frontendAttempts=0
+
+
+:WaitForFrontend
+
+powershell -NoProfile -Command ^
+    "try { $r = Invoke-WebRequest -Uri 'http://localhost:3000' -UseBasicParsing -TimeoutSec 3; if ($r.StatusCode -ge 200 -and $r.StatusCode -lt 500) { exit 0 } else { exit 1 } } catch { exit 1 }"
+
+if not errorlevel 1 goto FrontendReady
+
+set /a frontendAttempts+=1
+
+echo Waiting for frontend... !frontendAttempts!/30
+
+if !frontendAttempts! GEQ 30 goto FrontendTimeout
+
+timeout /t 3 /nobreak >nul
+
+goto WaitForFrontend
+
+
+REM =====================================================
+REM FRONTEND READY
+REM =====================================================
+
+:FrontendReady
+
+echo.
+echo Frontend is ready.
 echo Opening Hotel Management System...
+echo.
+
 start "" "http://localhost:3000"
 
 echo.
@@ -77,6 +153,10 @@ echo.
 timeout /t 3 /nobreak >nul
 exit /b 0
 
+
+REM =====================================================
+REM ERRORS
+REM =====================================================
 
 :DockerNotInstalled
 
@@ -109,10 +189,27 @@ pause
 exit /b 1
 
 
+:FrontendTimeout
+
+echo.
+echo ERROR: The frontend did not become available.
+echo.
+echo Current Docker status:
+docker compose ps
+echo.
+echo Check Docker Desktop and try again.
+echo.
+pause
+exit /b 1
+
+
 :ApplicationError
 
 echo.
 echo ERROR: Hotel Management System could not be started.
+echo.
+echo Docker status:
+docker compose ps
 echo.
 pause
 exit /b 1
